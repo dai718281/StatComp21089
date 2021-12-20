@@ -1,0 +1,93 @@
+## -----------------------------------------------------------------------------
+GradientDescent<-function(x,y,error,maxiter,stepmethod=T,step=0.001,alpha=0.25,beta=0.8)
+{
+  m<-nrow(x)
+  x<-cbind(matrix(1,m,1),x)
+  n<-ncol(x)
+  theta<-matrix(rep(0,n),n,1)  #theta initial value is set to 0
+  iter<-1
+  newerror<-1
+  
+  while((newerror>error)|(iter<maxiter)){
+    iter<-iter+1
+    h<-x%*%theta  
+    des<-t(t(h-y)%*%x)  #gradient
+    #Backward descent method to find the step length t
+    if(stepmethod==T){
+      sstep=1
+      new_theta<-theta-sstep*des
+      new_h<-x%*%new_theta
+      costfunction<-t(h-y)%*%(h-y)  #Least squares loss function
+      new_costfunction<-t(new_h-y)%*%(new_h-y)
+      #Backward descent method to find the step length sstep
+      while(new_costfunction>costfunction-alpha*sstep*sum(des*des)){
+        sstep<-sstep*beta
+        new_theta<-theta-sstep*des
+        new_h<-x%*%new_theta
+        new_costfunction<-t(new_h-y)%*%(new_h-y)  
+      }
+      newerror<-t(theta-new_theta)%*%(theta-new_theta)       
+      theta<-new_theta     
+    }
+    
+    #Set fixed step directly
+    if(stepmethod==F){        
+      new_theta<-theta-step*des
+      new_h<-x%*%new_theta
+      # new_costfunction<-t(new_h-y)%*%(new_h-y)
+      newerror<-t(theta-new_theta)%*%(theta-new_theta)
+      theta<-new_theta 
+    }
+    
+  }
+  costfunction<-t(x%*%theta-y)%*%(x%*%theta-y)
+  result<-list(theta,iter,costfunction)
+  names(result)<-c('coefficient','iter','error')
+  result
+}
+
+## ----eval=FALSE---------------------------------------------------------------
+#  GnS=function(x)    # x=(Y,U,V)
+#  {
+#    n<- nrow(x)
+#    H<- h1<- h2<- F<- f<- 1:n
+#    I=function(t)
+#    {
+#      if(t[2]<=t[1]&t[1]<=t[3]) {return(1)}
+#      else {return(0)}
+#    }
+#    for(i in 1:n) {h1[i]<- 1/n}
+#    for(i in 1:n)
+#    {
+#      H[i]<- 0
+#      for(j in 1:n) {H[i]<- H[i]+h1[j]*I(c(x[j,1],x[i,2],x[i,3]))}
+#    }
+#    while(abs(max(h1-h2))>=10^(-6))
+#    {
+#      h2<- h1
+#      for(j in 1:n)
+#      {
+#        f[j]<- 0
+#        for(i in 1:n){f[j]<- f[j]+1/H[i]}
+#        f[j]<- (1/f[j])*(1/H[j])
+#      }
+#      for(i in 1:n)
+#      {
+#        F[i]<- 0
+#        for(j in 1:n){F[i]<- F[i]+f[j]*I(c(x[i,1],x[j,2],x[j,3]))}
+#      }
+#      for(j in 1:n)
+#      {
+#        h1[j]<- 0
+#        for(i in 1:n) {h1[j]<- h1[j]+1/F[i]}
+#        h1[j]<- (1/h1[j])*(1/F[j])
+#      }
+#      for(i in 1:n)
+#      {
+#        H[i]<- 0
+#        for(j in 1:n) {H[i]<- H[i]+h1[j]*I(c(x[j,1],x[i,2],x[i,3]))}
+#      }
+#    }
+#    return(f)
+#  }
+
